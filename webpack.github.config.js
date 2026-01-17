@@ -5,7 +5,7 @@ module.exports = function () {
   var config = {
     entry: './main.js',
     output: {
-      library: 'SculptGL',
+      library: 'sculptgl',
       libraryTarget: 'umd',
       path: path.resolve(__dirname, 'docs'),
       filename: 'sculptgl.js',
