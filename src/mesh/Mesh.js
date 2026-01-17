@@ -1,4 +1,5 @@
 import { vec3, mat3, mat4 } from 'gl-matrix';
+import { yawPitchRollToMat4 } from 'math3d/yawPitchRoll';
 import Enums from 'misc/Enums';
 import Utils from 'misc/Utils';
 import OctreeCell from 'math3d/OctreeCell';
@@ -312,6 +313,29 @@ class Mesh {
 
   getMatrix() {
     return this._transformData._matrix;
+  }
+
+  getYawPitchRoll() {
+    return this._transformData._yawPitchRoll;
+  }
+
+  setYawPitchRoll(yaw, pitch, roll) {
+    vec3.set(this._transformData._yawPitchRoll, yaw, pitch, roll);
+    this._applyYawPitchRoll();
+  }
+
+  _applyYawPitchRoll() {
+    var tdata = this._transformData;
+    var mat = tdata._matrix;
+    var scale = this.getScale();
+    var tx = mat[12];
+    var ty = mat[13];
+    var tz = mat[14];
+    yawPitchRollToMat4(mat, tdata._yawPitchRoll[0], tdata._yawPitchRoll[1], tdata._yawPitchRoll[2]);
+    mat4.scale(mat, mat, [scale, scale, scale]);
+    mat[12] = tx;
+    mat[13] = ty;
+    mat[14] = tz;
   }
 
   getEditMatrix() {
