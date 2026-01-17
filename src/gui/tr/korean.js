@@ -108,6 +108,10 @@ var TR = {
   sculptMove: '잡아당기기',
   sculptLocalScale: '지역 스케일',
   sculptTransform: '변환 (E)',
+  sculptLocalTransform: 'Local transform',
+  sculptYaw: 'Yaw',
+  sculptPitch: 'Pitch',
+  sculptRoll: 'Roll',
 
   sculptCommon: '일반',
   sculptTool: '도구',

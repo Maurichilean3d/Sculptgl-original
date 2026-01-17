@@ -3,7 +3,7 @@ name: Deploy GitHub Pages
 on:
   push:
     branches:
-      - main
+      - work
   workflow_dispatch:
 
 permissions:
@@ -25,7 +25,7 @@ jobs:
           node-version: 18
           cache: npm
       - run: npm ci
-      - run: NODE_OPTIONS=--openssl-legacy-provider npm run github
+      - run: npm run github
       - run: touch docs/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:

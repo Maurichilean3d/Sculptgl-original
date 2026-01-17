@@ -106,6 +106,10 @@ var TR = {
   sculptMove: null,
   sculptLocalScale: null,
   sculptTransform: null,
+  sculptLocalTransform: null,
+  sculptYaw: null,
+  sculptPitch: null,
+  sculptRoll: null,
 
   sculptCommon: null,
   sculptTool: 'ツール',

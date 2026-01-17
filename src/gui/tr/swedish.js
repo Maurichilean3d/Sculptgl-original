@@ -108,6 +108,10 @@ var TR = {
   sculptMove: 'Flytta',
   sculptLocalScale: 'Skala lokalt',
   sculptTransform: 'Transformera (E)',
+  sculptLocalTransform: 'Local transform',
+  sculptYaw: 'Yaw',
+  sculptPitch: 'Pitch',
+  sculptRoll: 'Roll',
 
   sculptCommon: 'Generellt',
   sculptTool: 'Verktyg',
