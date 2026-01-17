@@ -108,6 +108,10 @@ var TR = {
   sculptPaint: '2D Кисть',
   sculptMasking: '2D Маска (-Ctrl)',
   sculptTransform: 'Трансформация',
+  sculptLocalTransform: 'Local transform',
+  sculptYaw: 'Yaw',
+  sculptPitch: 'Pitch',
+  sculptRoll: 'Roll',
 
   sculptCommon: 'Общее',
   sculptTool: 'Инструмент',

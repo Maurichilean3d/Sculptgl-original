@@ -34,6 +34,8 @@ GuiSculptingTools.hide = function (toolIndex) {
 GuiSculptingTools.show = function (toolIndex) {
   for (var i = 0, ctrls = GuiTools[toolIndex]._ctrls, nbCtrl = ctrls.length; i < nbCtrl; ++i)
     ctrls[i].setVisibility(true);
+  if (GuiTools[toolIndex].onShow)
+    GuiTools[toolIndex].onShow();
 };
 
 var setOnChange = function (key, factor, val) {
@@ -284,7 +286,46 @@ GuiTools[Enums.Tools.MASKING] = {
 
 GuiTools[Enums.Tools.TRANSFORM] = {
   _ctrls: [],
-  init: function () {}
+  _ctrlYaw: null,
+  _ctrlPitch: null,
+  _ctrlRoll: null,
+  _main: null,
+  _radToDeg: function (rad) {
+    return rad * 180.0 / Math.PI;
+  },
+  _degToRad: function (deg) {
+    return deg * Math.PI / 180.0;
+  },
+  _updateYawPitchRoll: function () {
+    var mesh = this._main.getMesh();
+    if (!mesh) return;
+    var rot = mesh.getYawPitchRoll();
+    this._ctrlYaw.setValue(this._radToDeg(rot[0]), true);
+    this._ctrlPitch.setValue(this._radToDeg(rot[1]), true);
+    this._ctrlRoll.setValue(this._radToDeg(rot[2]), true);
+  },
+  _applyYawPitchRoll: function () {
+    var mesh = this._main.getMesh();
+    if (!mesh) return;
+    mesh.setYawPitchRoll(
+      this._degToRad(this._ctrlYaw.getValue()),
+      this._degToRad(this._ctrlPitch.getValue()),
+      this._degToRad(this._ctrlRoll.getValue())
+    );
+    this._main.render();
+  },
+  onShow: function () {
+    this._updateYawPitchRoll();
+  },
+  init: function (tool, fold, main) {
+    this._main = main;
+    this._ctrls.push(fold.addTitle(TR('sculptLocalTransform')));
+    this._ctrlYaw = fold.addSlider(TR('sculptYaw'), 0, this._applyYawPitchRoll.bind(this), -180, 180, 1);
+    this._ctrlPitch = fold.addSlider(TR('sculptPitch'), 0, this._applyYawPitchRoll.bind(this), -180, 180, 1);
+    this._ctrlRoll = fold.addSlider(TR('sculptRoll'), 0, this._applyYawPitchRoll.bind(this), -180, 180, 1);
+    this._ctrls.push(this._ctrlYaw, this._ctrlPitch, this._ctrlRoll);
+    this._updateYawPitchRoll();
+  }
 };
 
 export default GuiSculptingTools;

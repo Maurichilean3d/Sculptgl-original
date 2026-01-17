@@ -108,6 +108,10 @@ var TR = {
   sculptMove: 'Taşı',
   sculptLocalScale: 'Yerel ölçek',
   sculptTransform: 'Transform (E)',
+  sculptLocalTransform: 'Local transform',
+  sculptYaw: 'Yaw',
+  sculptPitch: 'Pitch',
+  sculptRoll: 'Roll',
 
   sculptCommon: 'Genel',
   sculptTool: 'Araç',

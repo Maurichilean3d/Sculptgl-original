@@ -22,6 +22,13 @@ yarn dev # npm run dev (npm run release for final build, npm run website should 
 // visit app/index.html
 ```
 
+GitHub Pages build (required for the hosted site):
+```
+npm install
+npm run github
+// deploy docs/ via GitHub Pages (Actions workflow builds and publishes)
+```
+
 For standalone :
 ```
 yarn add electron

@@ -5,6 +5,7 @@ var TransformData = function () {
     _center: vec3.create(), // center of the mesh (local space, before transformation)
     _matrix: mat4.create(), // transformation matrix of the mesh
     _editMatrix: mat4.create(), // edit matrix
+    _yawPitchRoll: vec3.create(), // yaw/pitch/roll in radians (global axes)
 
     _symmetryNormal: [1.0, 0.0, 0.0], // symmetry normal
     _symmetryOffset: 0.0, // offset

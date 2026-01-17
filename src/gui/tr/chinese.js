@@ -108,6 +108,10 @@ var TR = {
   sculptMove: '移動',
   sculptLocalScale: '局部縮放',
   sculptTransform: '變形 (E)',
+  sculptLocalTransform: 'Local transform',
+  sculptYaw: 'Yaw',
+  sculptPitch: 'Pitch',
+  sculptRoll: 'Roll',
 
   sculptCommon: '通用',
   sculptTool: '工具',
