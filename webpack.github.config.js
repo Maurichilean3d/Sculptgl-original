@@ -7,7 +7,7 @@ module.exports = function () {
     output: {
       library: 'sculptgl',
       libraryTarget: 'umd',
-      path: path.resolve(__dirname, 'app'),
+      path: path.resolve(__dirname, 'docs'),
       filename: 'sculptgl.js',
       publicPath: './'
     },
@@ -28,7 +28,10 @@ module.exports = function () {
       new CopyWebpackPlugin({
         patterns: [
           { from: 'tools/authSuccess.html', to: 'authSuccess.html' },
-          { from: 'tools/index.github.html', to: 'index.html' }
+          { from: 'tools/index.github.html', to: 'index.html' },
+          { from: 'app/css', to: 'css' },
+          { from: 'app/resources', to: 'resources' },
+          { from: 'app/worker', to: 'worker' }
         ],
       })
     ]
