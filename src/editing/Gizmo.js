@@ -380,10 +380,16 @@ class Gizmo {
       var meshes = this._main.getSelectedMeshes();
       if (meshes.length > 0) {
         var mesh = meshes[0];
+
+        // combine mesh matrix with edit matrix to get current orientation
         var meshMat = mesh.getMatrix();
-        // extract rotation (3x3) from mesh matrix, ignoring scale and translation
+        var editMat = mesh.getEditMatrix();
+        var combinedMat = mat4.create();
+        mat4.mul(combinedMat, editMat, meshMat);
+
+        // extract rotation (3x3) from combined matrix, ignoring scale and translation
         var rot = mat4.create();
-        mat4.copy(rot, meshMat);
+        mat4.copy(rot, combinedMat);
         // remove translation
         rot[12] = rot[13] = rot[14] = 0.0;
         // normalize columns to remove scale
