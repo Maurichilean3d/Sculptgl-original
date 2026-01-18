@@ -289,7 +289,9 @@ GuiTools[Enums.Tools.TRANSFORM] = {
   _ctrlYaw: null,
   _ctrlPitch: null,
   _ctrlRoll: null,
+  _ctrlCoordSpace: null,
   _main: null,
+  _tool: null,
   _radToDeg: function (rad) {
     return rad * 180.0 / Math.PI;
   },
@@ -314,11 +316,19 @@ GuiTools[Enums.Tools.TRANSFORM] = {
     );
     this._main.render();
   },
+  _onCoordSpaceChanged: function (value) {
+    this._tool._gizmo.setCoordSpace(value);
+    this._main.render();
+  },
   onShow: function () {
     this._updateYawPitchRoll();
   },
   init: function (tool, fold, main) {
     this._main = main;
+    this._tool = tool;
+    this._ctrls.push(fold.addTitle(TR('sculptGizmoTransform')));
+    this._ctrlCoordSpace = fold.addCombobox(TR('sculptCoordSpace'), tool._gizmo.getCoordSpace(), this._onCoordSpaceChanged.bind(this), [TR('sculptGlobal'), TR('sculptLocal')]);
+    this._ctrls.push(this._ctrlCoordSpace);
     this._ctrls.push(fold.addTitle(TR('sculptLocalTransform')));
     this._ctrlYaw = fold.addSlider(TR('sculptYaw'), 0, this._applyYawPitchRoll.bind(this), -180, 180, 1);
     this._ctrlPitch = fold.addSlider(TR('sculptPitch'), 0, this._applyYawPitchRoll.bind(this), -180, 180, 1);
