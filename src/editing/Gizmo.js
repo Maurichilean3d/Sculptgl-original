@@ -70,6 +70,10 @@ var ROT_XYZ = ROT_X | ROT_Y | ROT_Z;
 var PLANE_XYZ = PLANE_X | PLANE_Y | PLANE_Z;
 var SCALE_XYZW = SCALE_X | SCALE_Y | SCALE_Z | SCALE_W;
 
+// coordinate space modes
+var COORD_GLOBAL = 0;
+var COORD_LOCAL = 1;
+
 class Gizmo {
   static get TRANS_X() {
     return TRANS_X;
@@ -127,6 +131,13 @@ class Gizmo {
     return SCALE_XYZW;
   }
 
+  static get COORD_GLOBAL() {
+    return COORD_GLOBAL;
+  }
+  static get COORD_LOCAL() {
+    return COORD_LOCAL;
+  }
+
   constructor(main) {
     this._main = main;
     this._gl = main._gl;
@@ -134,6 +145,9 @@ class Gizmo {
     // activated gizmos
     this._activatedType =
       Gizmo.TRANS_XYZ | Gizmo.ROT_XYZ | Gizmo.PLANE_XYZ | Gizmo.SCALE_XYZW | Gizmo.ROT_W;
+
+    // coordinate space mode (global or local)
+    this._coordSpace = Gizmo.COORD_GLOBAL;
 
     // trans arrow 1 dim
     this._transX = createGizmo(Gizmo.TRANS_X, 0);
@@ -192,6 +206,14 @@ class Gizmo {
   setActivatedType(type) {
     this._activatedType = type;
     this._initPickables();
+  }
+
+  setCoordSpace(space) {
+    this._coordSpace = space;
+  }
+
+  getCoordSpace() {
+    return this._coordSpace;
   }
 
   _initPickables() {
@@ -352,6 +374,29 @@ class Gizmo {
 
     var traScale = mat4.create();
     mat4.translate(traScale, traScale, trMesh);
+
+    // apply local rotation if in local coordinate mode
+    if (this._coordSpace === COORD_LOCAL) {
+      var meshes = this._main.getSelectedMeshes();
+      if (meshes.length > 0) {
+        var mesh = meshes[0];
+        var meshMat = mesh.getMatrix();
+        // extract rotation (3x3) from mesh matrix, ignoring scale and translation
+        var rot = mat4.create();
+        mat4.copy(rot, meshMat);
+        // remove translation
+        rot[12] = rot[13] = rot[14] = 0.0;
+        // normalize columns to remove scale
+        var len0 = Math.sqrt(rot[0] * rot[0] + rot[1] * rot[1] + rot[2] * rot[2]);
+        var len1 = Math.sqrt(rot[4] * rot[4] + rot[5] * rot[5] + rot[6] * rot[6]);
+        var len2 = Math.sqrt(rot[8] * rot[8] + rot[9] * rot[9] + rot[10] * rot[10]);
+        if (len0 > 0.0) { rot[0] /= len0; rot[1] /= len0; rot[2] /= len0; }
+        if (len1 > 0.0) { rot[4] /= len1; rot[5] /= len1; rot[6] /= len1; }
+        if (len2 > 0.0) { rot[8] /= len2; rot[9] /= len2; rot[10] /= len2; }
+        mat4.mul(traScale, traScale, rot);
+      }
+    }
+
     mat4.scale(traScale, traScale, [scaleFactor, scaleFactor, scaleFactor]);
 
     // manage arc stuffs
