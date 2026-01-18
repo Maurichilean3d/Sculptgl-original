@@ -1,6 +1,7 @@
 import { vec2, vec3, mat4, quat } from 'gl-matrix';
 import Primitives from 'drawables/Primitives';
 import Enums from 'misc/Enums';
+import { yawPitchRollToMat4 } from 'math3d/yawPitchRoll';
 
 // configs colors
 var COLOR_X = vec3.fromValues(0.7, 0.2, 0.2);
@@ -188,6 +189,9 @@ class Gizmo {
     this._editLineDirection = [0.0, 0.0, 0.0];
     this._editOffset = [0.0, 0.0, 0.0];
 
+    this._editAxis = mat4.create();
+    this._editAxisInv = mat4.create();
+
     // cached matrices when starting the editing operations
     this._editLocal = [];
     this._editTrans = mat4.create();
@@ -201,6 +205,26 @@ class Gizmo {
     this._initRotate();
     this._initScale();
     this._initPickables();
+  }
+
+  _normalizeRotationColumns(rot) {
+    var len0 = Math.sqrt(rot[0] * rot[0] + rot[1] * rot[1] + rot[2] * rot[2]);
+    var len1 = Math.sqrt(rot[4] * rot[4] + rot[5] * rot[5] + rot[6] * rot[6]);
+    var len2 = Math.sqrt(rot[8] * rot[8] + rot[9] * rot[9] + rot[10] * rot[10]);
+    if (len0 > 0.0) { rot[0] /= len0; rot[1] /= len0; rot[2] /= len0; }
+    if (len1 > 0.0) { rot[4] /= len1; rot[5] /= len1; rot[6] /= len1; }
+    if (len2 > 0.0) { rot[8] /= len2; rot[9] /= len2; rot[10] /= len2; }
+  }
+
+  _computeLocalAxisMatrix(mesh, out) {
+    var yawPitchRoll = mesh.getYawPitchRoll();
+    yawPitchRollToMat4(out, yawPitchRoll[0], yawPitchRoll[1], yawPitchRoll[2]);
+
+    var editRot = mat4.create();
+    mat4.copy(editRot, mesh.getEditMatrix());
+    editRot[12] = editRot[13] = editRot[14] = 0.0;
+    this._normalizeRotationColumns(editRot);
+    mat4.mul(out, out, editRot);
   }
 
   setActivatedType(type) {
@@ -488,6 +512,13 @@ class Gizmo {
       mat4.invert(this._editLocalInv[i], this._editLocal[i]);
       mat4.invert(this._editScaleRotInv[i], this._editScaleRot[i]);
     }
+
+    mat4.identity(this._editAxis);
+    mat4.identity(this._editAxisInv);
+    if (this._coordSpace === COORD_LOCAL && meshes.length > 0) {
+      this._computeLocalAxisMatrix(meshes[0], this._editAxis);
+      mat4.invert(this._editAxisInv, this._editAxis);
+    }
   }
 
   _startRotateEdit() {
@@ -527,6 +558,9 @@ class Gizmo {
     if (nbAxis !== -1)
       // if -1, we don't care about dir vector
       vec3.set(dir, 0.0, 0.0, 0.0)[nbAxis] = 1.0;
+    if (this._coordSpace === COORD_LOCAL) {
+      vec3.transformMat4(dir, dir, this._editAxis);
+    }
     vec3.add(dir, origin, dir);
 
     // project on screen and get a 2D line
@@ -617,6 +651,10 @@ class Gizmo {
 
     vec3.transformMat4(near, near, this._editTransInv);
     vec3.transformMat4(far, far, this._editTransInv);
+    if (this._coordSpace === COORD_LOCAL) {
+      vec3.transformMat4(near, near, this._editAxisInv);
+      vec3.transformMat4(far, far, this._editAxisInv);
+    }
 
     // intersection line line
     vec3.normalize(vec, vec3.sub(vec, far, near));
@@ -656,6 +694,10 @@ class Gizmo {
 
     vec3.transformMat4(near, near, this._editTransInv);
     vec3.transformMat4(far, far, this._editTransInv);
+    if (this._coordSpace === COORD_LOCAL) {
+      vec3.transformMat4(near, near, this._editAxisInv);
+      vec3.transformMat4(far, far, this._editAxisInv);
+    }
 
     // intersection line plane
     var inter = [0.0, 0.0, 0.0];
@@ -682,7 +724,11 @@ class Gizmo {
 
     var meshes = this._main.getSelectedMeshes();
     for (var i = 0; i < meshes.length; ++i) {
-      vec3.transformMat4(tmp, inter, this._editScaleRotInv[i]);
+      if (this._coordSpace === COORD_LOCAL) {
+        vec3.copy(tmp, inter);
+      } else {
+        vec3.transformMat4(tmp, inter, this._editScaleRotInv[i]);
+      }
 
       var edim = meshes[i].getEditMatrix();
       mat4.identity(edim);
@@ -734,8 +780,10 @@ class Gizmo {
     mat4.mul(edit, this._editTrans, edit);
     mat4.mul(edit, edit, this._editTransInv);
 
-    mat4.mul(edit, this._editLocalInv[i], edit);
-    mat4.mul(edit, edit, this._editLocal[i]);
+    if (this._coordSpace === COORD_GLOBAL) {
+      mat4.mul(edit, this._editLocalInv[i], edit);
+      mat4.mul(edit, edit, this._editLocal[i]);
+    }
   }
 
   addGizmoToScene(scene) {
