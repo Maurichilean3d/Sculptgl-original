@@ -167,7 +167,7 @@ class Gui {
   addAboutButton() {
     // Add version display
     var ctrlVersion = this._topbar.addMenu();
-    ctrlVersion.domContainer.innerHTML = 'SculptGL Altered v1.0.0';
+    ctrlVersion.domContainer.innerHTML = 'SculptGL Altered v1.1.0';
     ctrlVersion.domContainer.style.color = '#4CAF50';
     ctrlVersion.domContainer.style.fontWeight = 'bold';
     ctrlVersion.domContainer.style.cursor = 'default';
