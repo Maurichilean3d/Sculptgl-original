@@ -152,8 +152,8 @@ class GuiSculpting {
     }
   }
 
-  updateMesh() {
-    this._menu.setVisibility(!!this._main.getMesh());
+  updateMesh(isModelingMode) {
+    this._menu.setVisibility(!isModelingMode && !!this._main.getMesh());
   }
 
   _startModalBrushRadius(x, y) {

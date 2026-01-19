@@ -5,6 +5,7 @@ import GuiCamera from 'gui/GuiCamera';
 import GuiConfig from 'gui/GuiConfig';
 import GuiFiles from 'gui/GuiFiles';
 import GuiMesh from 'gui/GuiMesh';
+import GuiModeling from 'gui/GuiModeling';
 import GuiTopology from 'gui/GuiTopology';
 import GuiRendering from 'gui/GuiRendering';
 import GuiScene from 'gui/GuiScene';
@@ -30,6 +31,7 @@ class Gui {
     this._ctrlStates = null;
     this._ctrlCamera = null;
     this._ctrlBackground = null;
+    this._ctrlModeling = null;
 
     this._ctrlSculpting = null;
     this._ctrlTopology = null;
@@ -42,6 +44,8 @@ class Gui {
     // upload
     this._notifications = {};
     this._xhrs = {};
+
+    this._modelingMode = false;
   }
 
   initGui() {
@@ -68,6 +72,7 @@ class Gui {
 
     // Initialize the sidebar
     this._sidebar = this._guiMain.addRightSidebar();
+    ctrls[idc++] = this._ctrlModeling = new GuiModeling(this._topbar, this._sidebar, this);
     ctrls[idc++] = this._ctrlRendering = new GuiRendering(this._sidebar, this);
     ctrls[idc++] = this._ctrlTopology = new GuiTopology(this._sidebar, this);
     ctrls[idc++] = this._ctrlSculpting = new GuiSculpting(this._sidebar, this);
@@ -175,13 +180,19 @@ class Gui {
   updateMesh() {
     this._ctrlRendering.updateMesh();
     this._ctrlTopology.updateMesh();
-    this._ctrlSculpting.updateMesh();
+    this._ctrlSculpting.updateMesh(this._modelingMode);
+    this._ctrlModeling.updateMesh(this._modelingMode);
     this._ctrlScene.updateMesh();
     this.updateMeshInfo();
   }
 
   updateMeshInfo() {
     this._ctrlMesh.updateMeshInfo();
+  }
+
+  setModelingMode(enabled) {
+    this._modelingMode = enabled;
+    this.updateMesh();
   }
 
   getFlatShading() {
