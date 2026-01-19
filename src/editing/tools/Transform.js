@@ -78,6 +78,24 @@ class Transform extends SculptBase {
     var mAr = mesh.getMaterials();
     var vAr = mesh.getVertices();
     var vTemp = [0.0, 0.0, 0.0];
+    var nbVertices = mesh.getNbVertices();
+    var canApplyToMatrix = iVerts.length === nbVertices;
+    if (canApplyToMatrix) {
+      for (var k = 2; k < nbVertices * 3; k += 3) {
+        if (Math.abs(mAr[k] - 1.0) > 1e-6) {
+          canApplyToMatrix = false;
+          break;
+        }
+      }
+    }
+
+    if (canApplyToMatrix) {
+      mat4.mul(mesh.getMatrix(), mesh.getMatrix(), em);
+      mesh.updateYawPitchRollFromMatrix();
+      mat4.identity(em);
+      return;
+    }
+
     for (var i = 0, nb = iVerts.length; i < nb; ++i) {
       var j = iVerts[i] * 3;
       var mask = mAr[j + 2];
