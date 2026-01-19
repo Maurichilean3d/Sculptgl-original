@@ -73,6 +73,11 @@ class Scene {
     this._drawFullScene = false; // render everything on the rtt
     this._autoMatrix = opts.scalecenter; // scale and center the imported meshes
     this._vertexSRGB = true; // srgb vs linear colorspace for vertex color
+
+    this._autoRotateEnabled = false;
+    this._autoRotateSpeed = Math.PI / 6.0;
+    this._autoRotateAxis = 1;
+    this._autoRotateLastTime = null;
   }
 
   start() {
@@ -186,6 +191,45 @@ class Scene {
     this._canvas.style.cursor = style;
   }
 
+  setAutoRotateEnabled(enabled) {
+    this._autoRotateEnabled = enabled;
+    this._autoRotateLastTime = null;
+    if (enabled) this.render();
+  }
+
+  setAutoRotateSpeed(speed) {
+    this._autoRotateSpeed = speed;
+  }
+
+  setAutoRotateAxis(axis) {
+    this._autoRotateAxis = axis;
+  }
+
+  _updateAutoRotate() {
+    if (!this._autoRotateEnabled || !this._mesh)
+      return;
+
+    var now = performance.now();
+    if (this._autoRotateLastTime === null) {
+      this._autoRotateLastTime = now;
+      return;
+    }
+
+    var deltaSeconds = (now - this._autoRotateLastTime) / 1000.0;
+    this._autoRotateLastTime = now;
+
+    var speed = this._autoRotateSpeed;
+    if (!speed)
+      return;
+
+    var rot = speed * deltaSeconds;
+    var ypr = this._mesh.getYawPitchRoll();
+    if (this._autoRotateAxis === 0) ypr[1] += rot;
+    else if (this._autoRotateAxis === 2) ypr[2] += rot;
+    else ypr[0] += rot;
+    this._mesh.setYawPitchRoll(ypr[0], ypr[1], ypr[2]);
+  }
+
   initGrid() {
     var grid = this._grid;
     grid.normalizeSize();
@@ -242,6 +286,7 @@ class Scene {
 
   applyRender() {
     this._preventRender = false;
+    this._updateAutoRotate();
     this.updateMatricesAndSort();
 
     var gl = this._gl;
@@ -262,6 +307,8 @@ class Scene {
     gl.enable(gl.DEPTH_TEST);
 
     this._sculptManager.postRender(); // draw sculpting gizmo stuffs
+
+    if (this._autoRotateEnabled && this._mesh) this.render();
   }
 
   _drawScene() {
