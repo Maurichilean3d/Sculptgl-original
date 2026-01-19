@@ -404,42 +404,9 @@ class Gizmo {
       var meshes = this._main.getSelectedMeshes();
       if (meshes.length > 0) {
         var mesh = meshes[0];
-
-        // get mesh matrix (contains yaw/pitch/roll) and edit matrix (temporary transformations)
-        var meshMat = mesh.getMatrix();
-        var editMat = mesh.getEditMatrix();
-
-        // extract rotation from mesh matrix (ignoring scale and translation)
-        var meshRot = mat4.create();
-        mat4.copy(meshRot, meshMat);
-        meshRot[12] = meshRot[13] = meshRot[14] = 0.0; // remove translation
-        meshRot[15] = 1.0;
-        // normalize columns to remove scale and extract pure rotation
-        var len0 = Math.sqrt(meshRot[0] * meshRot[0] + meshRot[1] * meshRot[1] + meshRot[2] * meshRot[2]);
-        var len1 = Math.sqrt(meshRot[4] * meshRot[4] + meshRot[5] * meshRot[5] + meshRot[6] * meshRot[6]);
-        var len2 = Math.sqrt(meshRot[8] * meshRot[8] + meshRot[9] * meshRot[9] + meshRot[10] * meshRot[10]);
-        if (len0 > 1e-6) { meshRot[0] /= len0; meshRot[1] /= len0; meshRot[2] /= len0; }
-        if (len1 > 1e-6) { meshRot[4] /= len1; meshRot[5] /= len1; meshRot[6] /= len1; }
-        if (len2 > 1e-6) { meshRot[8] /= len2; meshRot[9] /= len2; meshRot[10] /= len2; }
-
-        // extract rotation from edit matrix
-        var editRot = mat4.create();
-        mat4.copy(editRot, editMat);
-        editRot[12] = editRot[13] = editRot[14] = 0.0;
-        editRot[15] = 1.0;
-        len0 = Math.sqrt(editRot[0] * editRot[0] + editRot[1] * editRot[1] + editRot[2] * editRot[2]);
-        len1 = Math.sqrt(editRot[4] * editRot[4] + editRot[5] * editRot[5] + editRot[6] * editRot[6]);
-        len2 = Math.sqrt(editRot[8] * editRot[8] + editRot[9] * editRot[9] + editRot[10] * editRot[10]);
-        if (len0 > 1e-6) { editRot[0] /= len0; editRot[1] /= len0; editRot[2] /= len0; }
-        if (len1 > 1e-6) { editRot[4] /= len1; editRot[5] /= len1; editRot[6] /= len1; }
-        if (len2 > 1e-6) { editRot[8] /= len2; editRot[9] /= len2; editRot[10] /= len2; }
-
-        // combine rotations: editRot * meshRot
-        var combinedRot = mat4.create();
-        mat4.mul(combinedRot, editRot, meshRot);
-
-        // apply combined rotation to gizmo
-        mat4.mul(traScale, traScale, combinedRot);
+        var rot = mat4.create();
+        this._computeLocalAxisMatrix(mesh, rot);
+        mat4.mul(traScale, traScale, rot);
       }
     }
 

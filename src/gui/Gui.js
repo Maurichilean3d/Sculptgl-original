@@ -165,13 +165,6 @@ class Gui {
   }
 
   addAboutButton() {
-    // Add version display
-    var ctrlVersion = this._topbar.addMenu();
-    ctrlVersion.domContainer.innerHTML = 'SculptGL Altered v1.2.0';
-    ctrlVersion.domContainer.style.color = '#4CAF50';
-    ctrlVersion.domContainer.style.fontWeight = 'bold';
-    ctrlVersion.domContainer.style.cursor = 'default';
-
     var ctrlAbout = this._topbar.addMenu();
     ctrlAbout.domContainer.innerHTML = TR('about');
     ctrlAbout.domContainer.addEventListener('mousedown', function () {
