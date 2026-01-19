@@ -1,7 +1,6 @@
 import { vec2, vec3, mat4, quat } from 'gl-matrix';
 import Primitives from 'drawables/Primitives';
 import Enums from 'misc/Enums';
-import { yawPitchRollToMat4 } from 'math3d/yawPitchRoll';
 
 // configs colors
 var COLOR_X = vec3.fromValues(0.7, 0.2, 0.2);
@@ -217,8 +216,9 @@ class Gizmo {
   }
 
   _computeLocalAxisMatrix(mesh, out) {
-    var yawPitchRoll = mesh.getYawPitchRoll();
-    yawPitchRollToMat4(out, yawPitchRoll[0], yawPitchRoll[1], yawPitchRoll[2]);
+    mat4.copy(out, mesh.getMatrix());
+    out[12] = out[13] = out[14] = 0.0;
+    this._normalizeRotationColumns(out);
 
     var editRot = mat4.create();
     mat4.copy(editRot, mesh.getEditMatrix());
