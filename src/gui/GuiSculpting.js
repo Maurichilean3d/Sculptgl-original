@@ -33,6 +33,7 @@ class GuiSculpting {
     this._ctrlRotomold = null;
     this._ctrlRotomoldSpeed = null;
     this._ctrlRotomoldAxis = null;
+    this._ctrlRotomoldPivot = null;
     this.init(guiParent);
   }
 
@@ -67,6 +68,9 @@ class GuiSculpting {
     this._ctrlRotomoldAxis = menu.addCombobox(TR('sculptRotomoldAxis'), this._main._autoRotateAxis, function (value) {
       this._main.setAutoRotateAxis(value);
     }.bind(this), [TR('sculptRotomoldAxisX'), TR('sculptRotomoldAxisY'), TR('sculptRotomoldAxisZ')]);
+    this._ctrlRotomoldPivot = menu.addCombobox(TR('sculptRotomoldPivot'), this._main._autoRotatePivot, function (value) {
+      this._main.setAutoRotatePivot(value);
+    }.bind(this), [TR('sculptRotomoldPivotMesh'), TR('sculptRotomoldPivotWorld')]);
 
     GuiSculptingTools.show(this._sculptManager.getToolIndex());
     this.addEvents();

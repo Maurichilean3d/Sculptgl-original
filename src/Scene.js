@@ -19,6 +19,10 @@ import ShaderLib from 'render/ShaderLib';
 import MeshStatic from 'mesh/meshStatic/MeshStatic';
 import WebGLCaps from 'render/WebGLCaps';
 
+var _TMP_AUTO_ROT_CENTER = vec3.create();
+var _TMP_AUTO_ROT_AXIS = vec3.create();
+var _TMP_AUTO_ROT_MAT = mat4.create();
+
 class Scene {
 
   constructor() {
@@ -77,6 +81,7 @@ class Scene {
     this._autoRotateEnabled = false;
     this._autoRotateSpeed = Math.PI / 6.0;
     this._autoRotateAxis = 1;
+    this._autoRotatePivot = 0;
     this._autoRotateLastTime = null;
   }
 
@@ -205,6 +210,10 @@ class Scene {
     this._autoRotateAxis = axis;
   }
 
+  setAutoRotatePivot(pivot) {
+    this._autoRotatePivot = pivot;
+  }
+
   _updateAutoRotate() {
     if (!this._autoRotateEnabled || !this._mesh)
       return;
@@ -223,11 +232,21 @@ class Scene {
       return;
 
     var rot = speed * deltaSeconds;
-    var ypr = this._mesh.getYawPitchRoll();
-    if (this._autoRotateAxis === 0) ypr[1] += rot;
-    else if (this._autoRotateAxis === 2) ypr[2] += rot;
-    else ypr[0] += rot;
-    this._mesh.setYawPitchRoll(ypr[0], ypr[1], ypr[2]);
+    var mesh = this._mesh;
+    var mat = mesh.getMatrix();
+    vec3.set(_TMP_AUTO_ROT_AXIS, 0.0, 0.0, 0.0);
+    _TMP_AUTO_ROT_AXIS[this._autoRotateAxis] = 1.0;
+    mat4.identity(_TMP_AUTO_ROT_MAT);
+    if (this._autoRotatePivot === 0) {
+      vec3.transformMat4(_TMP_AUTO_ROT_CENTER, mesh.getCenter(), mat);
+      mat4.translate(_TMP_AUTO_ROT_MAT, _TMP_AUTO_ROT_MAT, _TMP_AUTO_ROT_CENTER);
+      mat4.rotate(_TMP_AUTO_ROT_MAT, _TMP_AUTO_ROT_MAT, rot, _TMP_AUTO_ROT_AXIS);
+      mat4.translate(_TMP_AUTO_ROT_MAT, _TMP_AUTO_ROT_MAT, [-_TMP_AUTO_ROT_CENTER[0], -_TMP_AUTO_ROT_CENTER[1], -_TMP_AUTO_ROT_CENTER[2]]);
+    } else {
+      mat4.rotate(_TMP_AUTO_ROT_MAT, _TMP_AUTO_ROT_MAT, rot, _TMP_AUTO_ROT_AXIS);
+    }
+    mat4.mul(mat, _TMP_AUTO_ROT_MAT, mat);
+    mesh.updateYawPitchRollFromMatrix();
   }
 
   initGrid() {
