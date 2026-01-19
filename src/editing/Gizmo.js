@@ -13,10 +13,10 @@ var COLOR_SW = vec3.fromValues(0.8, 0.4, 0.2);
 var GIZMO_SIZE = 80.0;
 // arrow
 var ARROW_LENGTH = 2.5;
-var ARROW_CONE_THICK = 6.0;
+var ARROW_CONE_THICK = 7.5;
 var ARROW_CONE_LENGTH = 0.25;
 // thickness of tori and arrows
-var THICKNESS = 0.02;
+var THICKNESS = 0.025;
 var THICKNESS_PICK = THICKNESS * 5.0;
 // radius of tori
 var ROT_RADIUS = 1.5;
@@ -580,7 +580,7 @@ class Gizmo {
       origin[1] + dir[1] * dist
     );
 
-    var angle = (7 * dist) / Math.min(main.getCanvasWidth(), main.getCanvasHeight());
+    var angle = (2.5 * dist) / Math.min(main.getCanvasWidth(), main.getCanvasHeight());
     angle %= Math.PI * 2;
     var nbAxis = this._selected._nbAxis;
 
