@@ -30,6 +30,10 @@ class GuiSculpting {
     this._ctrlSymmetry = null;
     this._ctrlContinuous = null;
     this._ctrlTitleCommon = null;
+    this._ctrlRotomold = null;
+    this._ctrlRotomoldSpeed = null;
+    this._ctrlRotomoldAxis = null;
+    this._ctrlRotomoldPivot = null;
     this.init(guiParent);
   }
 
@@ -53,6 +57,20 @@ class GuiSculpting {
     this._ctrlSymmetry = menu.addCheckbox(TR('sculptSymmetry'), this._sculptManager._symmetry, this.onSymmetryChange.bind(this));
     // continuous
     this._ctrlContinuous = menu.addCheckbox(TR('sculptContinuous'), this._sculptManager, '_continuous');
+
+    menu.addTitle(TR('sculptRotomoldTitle'));
+    this._ctrlRotomold = menu.addCheckbox(TR('sculptRotomoldEnable'), this._main._autoRotateEnabled, function (value) {
+      this._main.setAutoRotateEnabled(value);
+    }.bind(this));
+    this._ctrlRotomoldSpeed = menu.addSlider(TR('sculptRotomoldSpeed'), this._main._autoRotateSpeed * 180.0 / Math.PI, function (value) {
+      this._main.setAutoRotateSpeed(value * Math.PI / 180.0);
+    }.bind(this), 0, 180, 1);
+    this._ctrlRotomoldAxis = menu.addCombobox(TR('sculptRotomoldAxis'), this._main._autoRotateAxis, function (value) {
+      this._main.setAutoRotateAxis(value);
+    }.bind(this), [TR('sculptRotomoldAxisX'), TR('sculptRotomoldAxisY'), TR('sculptRotomoldAxisZ')]);
+    this._ctrlRotomoldPivot = menu.addCombobox(TR('sculptRotomoldPivot'), this._main._autoRotatePivot, function (value) {
+      this._main.setAutoRotatePivot(value);
+    }.bind(this), [TR('sculptRotomoldPivotMesh'), TR('sculptRotomoldPivotWorld')]);
 
     GuiSculptingTools.show(this._sculptManager.getToolIndex());
     this.addEvents();

@@ -1,5 +1,6 @@
 import TR from 'gui/GuiTR';
 import Remesh from 'editing/Remesh';
+import QuadRemesh from 'editing/QuadRemesh';
 import Mesh from 'mesh/Mesh';
 import MeshStatic from 'mesh/meshStatic/MeshStatic';
 import Multimesh from 'mesh/multiresolution/Multimesh';
@@ -48,6 +49,14 @@ class GuiMultiresolution {
     menu.addCheckbox(TR('remeshSmoothingMC'), Remesh, 'SMOOTHING');
     menu.addButton(TR('remeshRemeshMC'), this, 'remeshMC');
 
+    // quad retopology
+    menu.addTitle(TR('retopoQuadTitle'));
+    this._ctrlQuadRes = menu.addSlider(TR('retopoQuadResolution'), QuadRemesh.RESOLUTION, this.retopoQuadResolution.bind(this), 8, 400, 1);
+    this._ctrlQuadRelax = menu.addSlider(TR('retopoQuadRelax'), QuadRemesh.RELAX_ITERATIONS, this.retopoQuadRelax.bind(this), 0, 20, 1);
+    this._ctrlQuadIntensity = menu.addSlider(TR('retopoQuadIntensity'), QuadRemesh.RELAX_INTENSITY * 100, this.retopoQuadIntensity.bind(this), 0, 100, 1);
+    menu.addCheckbox(TR('retopoQuadTangent'), QuadRemesh, 'TANGENT');
+    menu.addButton(TR('retopoQuadAction'), this, 'retopoQuad');
+
     // dynamic
     menu.addTitle(TR('dynamicTitle'));
     this._ctrlDynamic = menu.addCheckbox(TR('dynamicActivated'), false, this.dynamicToggleActivate.bind(this));
@@ -94,6 +103,21 @@ class GuiMultiresolution {
     this._ctrlRes2.setValue(val, true);
   }
 
+  retopoQuadResolution(val) {
+    QuadRemesh.RESOLUTION = val;
+    this._ctrlQuadRes.setValue(val, true);
+  }
+
+  retopoQuadRelax(val) {
+    QuadRemesh.RELAX_ITERATIONS = val;
+    this._ctrlQuadRelax.setValue(val, true);
+  }
+
+  retopoQuadIntensity(val) {
+    QuadRemesh.RELAX_INTENSITY = val / 100.0;
+    this._ctrlQuadIntensity.setValue(val, true);
+  }
+
   remesh(manifold) {
     var main = this._main;
     var mesh = main.getMesh();
@@ -113,6 +137,31 @@ class GuiMultiresolution {
     }
 
     var newMesh = Remesh.remesh(selMeshes, mesh, manifold);
+    if (wasDynamic) newMesh = new MeshDynamic(newMesh);
+    main.getStateManager().pushStateAddRemove(newMesh, main.getSelectedMeshes().slice());
+    main.getMeshes().push(newMesh);
+    main.setMesh(newMesh);
+  }
+
+  retopoQuad() {
+    var main = this._main;
+    var mesh = main.getMesh();
+    if (!mesh)
+      return;
+
+    var wasDynamic = mesh.isDynamic;
+
+    var meshes = main.getMeshes();
+    var selMeshes = main.getSelectedMeshes().slice();
+    for (var i = 0, l = selMeshes.length; i < l; ++i) {
+      var sel = selMeshes[i];
+      meshes.splice(main.getIndexMesh(sel), 1);
+      selMeshes[i] = this.convertToStaticMesh(sel);
+      if (sel === mesh)
+        mesh = selMeshes[i];
+    }
+
+    var newMesh = QuadRemesh.remesh(selMeshes, mesh);
     if (wasDynamic) newMesh = new MeshDynamic(newMesh);
     main.getStateManager().pushStateAddRemove(newMesh, main.getSelectedMeshes().slice());
     main.getMeshes().push(newMesh);
