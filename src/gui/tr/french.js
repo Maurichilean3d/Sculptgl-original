@@ -47,6 +47,7 @@ var TR = {
   sceneResetConfirm: 'Confirmer réinitialiser la scène?',
   sceneAddSphere: 'Ajouter sphere',
   sceneAddCube: 'Ajouter cube',
+  sceneAddPlane: 'Ajouter plan',
   sceneAddCylinder: 'Ajouter cylindre',
   sceneAddTorus: 'Ajouter tore',
   sceneSelection: 'Sélection',

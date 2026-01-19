@@ -47,6 +47,7 @@ var TR = {
   sceneResetConfirm: '모두 제거 확인',
   sceneAddSphere: '구 추가하기',
   sceneAddCube: '정육면체 추가하기',
+  sceneAddPlane: '평면 추가하기',
   sceneAddCylinder: '기둥 추가하기',
   sceneAddTorus: '도넛 추가하기',
   sceneSelection: '선택',

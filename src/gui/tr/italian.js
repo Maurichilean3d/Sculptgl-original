@@ -47,6 +47,7 @@ var TR = {
   sceneResetConfirm: 'Conferma pulitura scena',
   sceneAddSphere: 'Aggiungi sfera',
   sceneAddCube: 'Aggiungi cubo',
+  sceneAddPlane: 'Aggiungi piano',
   sceneAddCylinder: 'Aggiungi cilindro',
   sceneAddTorus: 'Aggiungi toroide',
   sceneSelection: 'Selezione',

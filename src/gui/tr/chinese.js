@@ -47,6 +47,7 @@ var TR = {
   sceneResetConfirm: '確認清除場景',
   sceneAddSphere: '加入球體',
   sceneAddCube: '加入立方體',
+  sceneAddPlane: '加入平面',
   sceneAddCylinder: '加入圓柱',
   sceneAddTorus: '加入圓環',
   sceneSelection: '選取項目',
