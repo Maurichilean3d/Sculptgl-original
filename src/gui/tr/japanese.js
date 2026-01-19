@@ -84,6 +84,12 @@ var TR = {
   remeshRemesh: null,
   remeshResolution: null,
   remeshBlock: null,
+  retopoQuadTitle: null,
+  retopoQuadAction: null,
+  retopoQuadResolution: null,
+  retopoQuadRelax: null,
+  retopoQuadIntensity: null,
+  retopoQuadTangent: null,
 
   // dynamic
   dynamicTitle: null,

@@ -86,6 +86,12 @@ var TR = {
   remeshRemesh: 'Bygg om mesh',
   remeshResolution: 'Upplösning',
   remeshBlock: 'Kuber',
+  retopoQuadTitle: 'Quad retopology (experimental)',
+  retopoQuadAction: 'Retopo quads',
+  retopoQuadResolution: 'Resolution',
+  retopoQuadRelax: 'Relax iterations',
+  retopoQuadIntensity: 'Relax intensity',
+  retopoQuadTangent: 'Tangent relax',
 
   // dynamic
   dynamicTitle: 'Dynamisk Topologi',

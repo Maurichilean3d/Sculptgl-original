@@ -86,6 +86,12 @@ var TR = {
   remeshRemesh: '리메시',
   remeshResolution: '해상도',
   remeshBlock: '각지게',
+  retopoQuadTitle: 'Quad retopology (experimental)',
+  retopoQuadAction: 'Retopo quads',
+  retopoQuadResolution: 'Resolution',
+  retopoQuadRelax: 'Relax iterations',
+  retopoQuadIntensity: 'Relax intensity',
+  retopoQuadTangent: 'Tangent relax',
 
   // dynamic
   dynamicTitle: '동적 토폴로지',

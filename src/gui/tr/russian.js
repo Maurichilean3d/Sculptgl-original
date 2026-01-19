@@ -86,6 +86,12 @@ var TR = {
   remeshRemesh: 'Перестроить',
   remeshResolution: 'Разрешение',
   remeshBlock: 'Блоки-кубики',
+  retopoQuadTitle: 'Quad retopology (experimental)',
+  retopoQuadAction: 'Retopo quads',
+  retopoQuadResolution: 'Resolution',
+  retopoQuadRelax: 'Relax iterations',
+  retopoQuadIntensity: 'Relax intensity',
+  retopoQuadTangent: 'Tangent relax',
 
   // dynamic
   dynamicTitle: 'Динамическая топология',
