@@ -7,6 +7,7 @@ module.exports = function () {
     output: {
       library: 'SculptGL',
       libraryTarget: 'umd',
+      libraryExport: 'default',
       path: path.resolve(__dirname, 'docs'),
       filename: 'sculptgl.js',
       publicPath: './'
