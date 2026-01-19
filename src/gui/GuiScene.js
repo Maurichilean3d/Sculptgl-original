@@ -17,6 +17,7 @@ class GuiScene {
     menu.addButton(TR('sceneReset'), this, 'clearScene' /*, 'CTRL+ALT+N'*/ );
     menu.addButton(TR('sceneAddSphere'), this._main, 'addSphere');
     menu.addButton(TR('sceneAddCube'), this._main, 'addCube');
+    menu.addButton(TR('sceneAddPlane'), this._main, 'addPlane');
     menu.addButton(TR('sceneAddCylinder'), this._main, 'addCylinder');
     menu.addButton(TR('sceneAddTorus'), this._main, 'addTorus');
 

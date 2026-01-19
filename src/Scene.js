@@ -513,6 +513,13 @@ class Scene {
     return this.addNewMesh(mesh);
   }
 
+  addPlane() {
+    var mesh = new Multimesh(Primitives.createPlane(this._gl));
+    mesh.normalizeSize();
+    this.subdivideClamp(mesh, true);
+    return this.addNewMesh(mesh);
+  }
+
   addCylinder() {
     var mesh = new Multimesh(Primitives.createCylinder(this._gl));
     mesh.normalizeSize();

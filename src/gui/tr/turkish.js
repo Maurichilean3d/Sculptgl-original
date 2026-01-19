@@ -47,6 +47,7 @@ var TR = {
   sceneResetConfirm: 'Net sahneyi doğrulayın',
   sceneAddSphere: 'Küre ekle',
   sceneAddCube: 'Küp ekle',
+  sceneAddPlane: 'Düzlem ekle',
   sceneAddCylinder: 'Silindir ekle',
   sceneAddTorus: 'Halka ekle',
   sceneSelection: 'Seçim',

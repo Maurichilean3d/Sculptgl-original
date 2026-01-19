@@ -47,6 +47,7 @@ var TR = {
   sceneResetConfirm: 'Подтвердить четкую сцену',
   sceneAddSphere: 'Добавить сферу',
   sceneAddCube: 'Добавить куб',
+  sceneAddPlane: 'Добавить плоскость',
   sceneAddCylinder: 'Добавить цилиндр',
   sceneAddTorus: 'Добавить тор',
   sceneSelection: 'Выбрать',
