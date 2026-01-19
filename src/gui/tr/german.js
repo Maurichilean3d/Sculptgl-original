@@ -47,6 +47,7 @@ var TR = {
   sceneResetConfirm: 'Bestätige das Löschen der aktuellen Szene',
   sceneAddSphere: 'Kugel hinzufügen',
   sceneAddCube: 'Würfel hinzufügen',
+  sceneAddPlane: 'Ebene hinzufügen',
   sceneAddCylinder: 'Zylinder hinzufügen',
   sceneAddTorus: 'Torus hinzufügen',
   sceneSelection: 'Auswahl',

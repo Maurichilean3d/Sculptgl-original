@@ -1,5 +1,6 @@
 import { vec3 } from 'gl-matrix';
 import Tools from 'editing/tools/Tools';
+import Gizmo from 'editing/Gizmo';
 import TR from 'gui/GuiTR';
 import Picking from 'math3d/Picking';
 import Enums from 'misc/Enums';
@@ -286,42 +287,63 @@ GuiTools[Enums.Tools.MASKING] = {
 
 GuiTools[Enums.Tools.TRANSFORM] = {
   _ctrls: [],
-  _ctrlYaw: null,
-  _ctrlPitch: null,
-  _ctrlRoll: null,
   _ctrlCoordSpace: null,
+  _ctrlOpFilter: null,
+  _ctrlAxisFilter: null,
   _main: null,
   _tool: null,
-  _radToDeg: function (rad) {
-    return rad * 180.0 / Math.PI;
+  _opFilter: 0,
+  _axisFilter: 0,
+  _getOperationMask: function () {
+    switch (this._opFilter) {
+    case 1:
+      return Gizmo.TRANS_XYZ | Gizmo.PLANE_XYZ;
+    case 2:
+      return Gizmo.ROT_XYZ | Gizmo.ROT_W;
+    case 3:
+      return Gizmo.SCALE_XYZW;
+    default:
+      return Gizmo.TRANS_XYZ | Gizmo.PLANE_XYZ | Gizmo.ROT_XYZ | Gizmo.ROT_W | Gizmo.SCALE_XYZW;
+    }
   },
-  _degToRad: function (deg) {
-    return deg * Math.PI / 180.0;
+  _getAxisMask: function () {
+    switch (this._axisFilter) {
+    case 1:
+      return { trans: Gizmo.TRANS_X, rot: Gizmo.ROT_X, scale: Gizmo.SCALE_X };
+    case 2:
+      return { trans: Gizmo.TRANS_Y, rot: Gizmo.ROT_Y, scale: Gizmo.SCALE_Y };
+    case 3:
+      return { trans: Gizmo.TRANS_Z, rot: Gizmo.ROT_Z, scale: Gizmo.SCALE_Z };
+    default:
+      return null;
+    }
   },
-  _updateYawPitchRoll: function () {
-    var mesh = this._main.getMesh();
-    if (!mesh) return;
-    var rot = mesh.getYawPitchRoll();
-    this._ctrlYaw.setValue(this._radToDeg(rot[0]), true);
-    this._ctrlPitch.setValue(this._radToDeg(rot[1]), true);
-    this._ctrlRoll.setValue(this._radToDeg(rot[2]), true);
-  },
-  _applyYawPitchRoll: function () {
-    var mesh = this._main.getMesh();
-    if (!mesh) return;
-    mesh.setYawPitchRoll(
-      this._degToRad(this._ctrlYaw.getValue()),
-      this._degToRad(this._ctrlPitch.getValue()),
-      this._degToRad(this._ctrlRoll.getValue())
-    );
+  _applyGizmoFilters: function () {
+    var mask = this._getOperationMask();
+    var axisMask = this._getAxisMask();
+    if (axisMask) {
+      var axisCombined = 0;
+      if (mask & Gizmo.TRANS_XYZ) axisCombined |= axisMask.trans;
+      if (mask & Gizmo.PLANE_XYZ) axisCombined |= axisMask.trans;
+      if (mask & Gizmo.ROT_XYZ) axisCombined |= axisMask.rot;
+      if (mask & Gizmo.ROT_W) axisCombined |= axisMask.rot;
+      if (mask & Gizmo.SCALE_XYZW) axisCombined |= axisMask.scale;
+      mask = axisCombined;
+    }
+    this._tool._gizmo.setActivatedType(mask);
     this._main.render();
   },
   _onCoordSpaceChanged: function (value) {
     this._tool._gizmo.setCoordSpace(value);
     this._main.render();
   },
-  onShow: function () {
-    this._updateYawPitchRoll();
+  _onOpFilterChanged: function (value) {
+    this._opFilter = value;
+    this._applyGizmoFilters();
+  },
+  _onAxisFilterChanged: function (value) {
+    this._axisFilter = value;
+    this._applyGizmoFilters();
   },
   init: function (tool, fold, main) {
     this._main = main;
@@ -329,12 +351,11 @@ GuiTools[Enums.Tools.TRANSFORM] = {
     this._ctrls.push(fold.addTitle(TR('sculptGizmoTransform')));
     this._ctrlCoordSpace = fold.addCombobox(TR('sculptCoordSpace'), tool._gizmo.getCoordSpace(), this._onCoordSpaceChanged.bind(this), [TR('sculptGlobal'), TR('sculptLocal')]);
     this._ctrls.push(this._ctrlCoordSpace);
-    this._ctrls.push(fold.addTitle(TR('sculptLocalTransform')));
-    this._ctrlYaw = fold.addSlider(TR('sculptYaw'), 0, this._applyYawPitchRoll.bind(this), -180, 180, 1);
-    this._ctrlPitch = fold.addSlider(TR('sculptPitch'), 0, this._applyYawPitchRoll.bind(this), -180, 180, 1);
-    this._ctrlRoll = fold.addSlider(TR('sculptRoll'), 0, this._applyYawPitchRoll.bind(this), -180, 180, 1);
-    this._ctrls.push(this._ctrlYaw, this._ctrlPitch, this._ctrlRoll);
-    this._updateYawPitchRoll();
+    this._ctrls.push(fold.addTitle(TR('sculptGizmoFilters')));
+    this._ctrlOpFilter = fold.addCombobox(TR('sculptGizmoOperation'), this._opFilter, this._onOpFilterChanged.bind(this), [TR('sculptGizmoAll'), TR('sculptGizmoMove'), TR('sculptGizmoRotate'), TR('sculptGizmoScale')]);
+    this._ctrlAxisFilter = fold.addCombobox(TR('sculptGizmoAxis'), this._axisFilter, this._onAxisFilterChanged.bind(this), [TR('sculptGizmoAll'), TR('sculptGizmoAxisX'), TR('sculptGizmoAxisY'), TR('sculptGizmoAxisZ')]);
+    this._ctrls.push(this._ctrlOpFilter, this._ctrlAxisFilter);
+    this._applyGizmoFilters();
   }
 };
 

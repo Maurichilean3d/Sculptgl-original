@@ -47,6 +47,7 @@ var TR = {
   sceneResetConfirm: 'Bekräfta klar scen',
   sceneAddSphere: 'Lägg till sfär',
   sceneAddCube: 'Lägg till kub',
+  sceneAddPlane: 'Lägg till plan',
   sceneAddCylinder: 'Lägg till cylinder',
   sceneAddTorus: 'Lägg till torus',
   sceneSelection: 'Urval',
