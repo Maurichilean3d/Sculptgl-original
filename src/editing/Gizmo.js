@@ -580,7 +580,7 @@ class Gizmo {
       origin[1] + dir[1] * dist
     );
 
-    var angle = (7 * dist) / Math.min(main.getCanvasWidth(), main.getCanvasHeight());
+    var angle = (2.5 * dist) / Math.min(main.getCanvasWidth(), main.getCanvasHeight());
     angle %= Math.PI * 2;
     var nbAxis = this._selected._nbAxis;
 
