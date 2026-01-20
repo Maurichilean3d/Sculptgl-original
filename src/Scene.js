@@ -24,10 +24,6 @@ var _TMP_AUTO_ROT_CENTER = vec3.create();
 var _TMP_AUTO_ROT_AXIS = vec3.create();
 var _TMP_AUTO_ROT_MAT = mat4.create();
 
-var _TMP_AUTO_ROT_CENTER = vec3.create();
-var _TMP_AUTO_ROT_AXIS = vec3.create();
-var _TMP_AUTO_ROT_MAT = mat4.create();
-
 class Scene {
 
   constructor() {
@@ -403,24 +399,9 @@ class Scene {
     }
     gl.depthFunc(gl.LEQUAL);
 
-    gl.depthMask(false);
-    gl.enable(gl.CULL_FACE);
-
-    for (i = startTransparent; i < nbMeshes; ++i) {
-      gl.cullFace(gl.FRONT); // draw back first
+    // transparent meshes
+    for (i = startTransparent; i < nbMeshes; ++i)
       meshes[i].render(this);
-      gl.cullFace(gl.BACK); // ... and then front
-      meshes[i].render(this);
-    }
-
-    gl.disable(gl.CULL_FACE);
-
-    ///////////////
-    // CONTOUR 2/2
-    ///////////////
-    if (showContour) {
-      this._rttContour.render(this);
-    }
 
     gl.depthMask(true);
     gl.disable(gl.BLEND);
@@ -580,185 +561,262 @@ class Scene {
     for (var i = 0, l = meshes.length; i < l; ++i) {
       var mat = meshes[i].getMatrix();
       mat4.mul(mat, mCen, mat);
+      meshes[i].updateGeometry();
+      meshes[i].updateGeometryBuffers();
     }
   }
 
-  addSphere() {
-    // make a cube and subdivide it
-    var mesh = new Multimesh(Primitives.createCube(this._gl));
-    mesh.normalizeSize();
-    this.subdivideClamp(mesh);
-    return this.addNewMesh(mesh);
-  }
+  addMesh(mesh, merge) {
+    if (!mesh)
+      return;
 
-  addCube() {
-    var mesh = new Multimesh(Primitives.createCube(this._gl));
-    mesh.normalizeSize();
-    mat4.scale(mesh.getMatrix(), mesh.getMatrix(), [0.7, 0.7, 0.7]);
-    this.subdivideClamp(mesh, true);
-    return this.addNewMesh(mesh);
-  }
-
-  addPlane() {
-    var mesh = new Multimesh(Primitives.createPlane(this._gl));
-    mesh.normalizeSize();
-    this.subdivideClamp(mesh, true);
-    return this.addNewMesh(mesh);
-  }
-
-  addCylinder() {
-    var mesh = new Multimesh(Primitives.createCylinder(this._gl));
-    mesh.normalizeSize();
-    mat4.scale(mesh.getMatrix(), mesh.getMatrix(), [0.7, 0.7, 0.7]);
-    this.subdivideClamp(mesh);
-    return this.addNewMesh(mesh);
-  }
-
-  addTorus(preview) {
-    var mesh = new Multimesh(Primitives.createTorus(this._gl, this._torusLength, this._torusWidth, this._torusRadius, this._torusRadial, this._torusTubular));
-    if (preview) {
-      mesh.setShowWireframe(true);
-      var scale = 0.3 * Utils.SCALE;
-      mat4.scale(mesh.getMatrix(), mesh.getMatrix(), [scale, scale, scale]);
-      this._meshPreview = mesh;
+    if (merge) {
+      this.mergeMeshes(this._mesh, mesh);
       return;
     }
-    mesh.normalizeSize();
-    this.subdivideClamp(mesh);
-    this.addNewMesh(mesh);
-  }
 
-  subdivideClamp(mesh, linear) {
-    Subdivision.LINEAR = !!linear;
-    while (mesh.getNbFaces() < 50000)
-      mesh.addLevel();
-    // keep at max 4 multires
-    mesh._meshes.splice(0, Math.min(mesh._meshes.length - 4, 4));
-    mesh._sel = mesh._meshes.length - 1;
-    Subdivision.LINEAR = false;
-  }
-
-  addNewMesh(mesh) {
     this._meshes.push(mesh);
-    this._stateManager.pushStateAdd(mesh);
-    this.setMesh(mesh);
-    return mesh;
+    this.setOrUnsetMesh(mesh);
   }
 
-  loadScene(fileData, fileType) {
-    var newMeshes;
-    if (fileType === 'obj') newMeshes = Import.importOBJ(fileData, this._gl);
-    else if (fileType === 'sgl') newMeshes = Import.importSGL(fileData, this._gl, this);
-    else if (fileType === 'stl') newMeshes = Import.importSTL(fileData, this._gl);
-    else if (fileType === 'ply') newMeshes = Import.importPLY(fileData, this._gl);
-
-    var nbNewMeshes = newMeshes.length;
-    if (nbNewMeshes === 0) {
-      return;
-    }
-
-    var meshes = this._meshes;
-    for (var i = 0; i < nbNewMeshes; ++i) {
-      var mesh = newMeshes[i] = new Multimesh(newMeshes[i]);
-
-      if (!this._vertexSRGB && mesh.getColors()) {
-        Utils.convertArrayVec3toSRGB(mesh.getColors());
-      }
-
-      mesh.init();
-      mesh.initRender();
-      meshes.push(mesh);
-    }
-
-    if (this._autoMatrix) {
-      this.normalizeAndCenterMeshes(newMeshes);
-    }
-
-    this._stateManager.pushStateAdd(newMeshes);
-    this.setMesh(meshes[meshes.length - 1]);
-    this.resetCameraMeshes(newMeshes);
-    return newMeshes;
+  replaceMesh(mesh, newMesh) {
+    var id = this.getIndexMesh(mesh);
+    if (id !== -1)
+      this._meshes[id] = newMesh;
+    this.setOrUnsetMesh(newMesh);
   }
 
-  clearScene() {
-    this.getStateManager().reset();
-    this.getMeshes().length = 0;
-    this.getCamera().resetView();
-    this.setMesh(null);
-    this._action = Enums.Action.NOTHING;
-  }
-
-  deleteCurrentSelection() {
-    if (!this._mesh)
-      return;
-
-    this.removeMeshes(this._selectMeshes);
-    this._stateManager.pushStateRemove(this._selectMeshes.slice());
-    this._selectMeshes.length = 0;
-    this.setMesh(null);
-  }
-
-  removeMeshes(rm) {
-    var meshes = this._meshes;
-    for (var i = 0; i < rm.length; ++i)
-      meshes.splice(this.getIndexMesh(rm[i]), 1);
-  }
-
-  getIndexMesh(mesh, select) {
-    var meshes = select ? this._selectMeshes : this._meshes;
-    var id = mesh.getID();
-    for (var i = 0, nbMeshes = meshes.length; i < nbMeshes; ++i) {
-      var testMesh = meshes[i];
-      if (testMesh === mesh || testMesh.getID() === id)
+  getIndexMesh(mesh) {
+    for (var i = 0, l = this._meshes.length; i < l; ++i)
+      if (this._meshes[i] === mesh)
         return i;
-    }
     return -1;
   }
 
   getIndexSelectMesh(mesh) {
-    return this.getIndexMesh(mesh, true);
+    for (var i = 0, l = this._selectMeshes.length; i < l; ++i)
+      if (this._selectMeshes[i] === mesh)
+        return i;
+    return -1;
   }
 
-  /** Replace a mesh in the scene */
-  replaceMesh(mesh, newMesh) {
-    var index = this.getIndexMesh(mesh);
-    if (index >= 0) this._meshes[index] = newMesh;
-    if (this._mesh === mesh) this.setMesh(newMesh);
+  isVertexSRGB() {
+    return this._vertexSRGB;
   }
 
-  duplicateSelection() {
-    var meshes = this._selectMeshes.slice();
-    var mesh = null;
-    for (var i = 0; i < meshes.length; ++i) {
-      mesh = meshes[i];
-      var copy = new MeshStatic(mesh.getGL());
-      copy.copyData(mesh);
+  isMeshSelected() {
+    return !!this._mesh;
+  }
 
-      this.addNewMesh(copy);
+  setPixelRatio(ratio) {
+    this._pixelRatio = ratio;
+  }
+
+  setVertexSRGB(bool) {
+    this._vertexSRGB = bool;
+  }
+
+  updateMeshBuffers() {
+    var mesh = this._mesh;
+    if (!mesh)
+      return;
+    if (mesh.isDynamic)
+      mesh.updateBuffers();
+    else
+      mesh.updateGeometryBuffers();
+  }
+
+  mergeMeshes(mesh, meshToMerge) {
+    if (!mesh || !meshToMerge || mesh === meshToMerge)
+      return;
+
+    var id = this.getIndexMesh(meshToMerge);
+    if (id >= 0)
+      this._meshes.splice(id, 1);
+
+    var state = this._stateManager.getCurrentState();
+    if (state)
+      state.squash = true;
+
+    this._stateManager.pushStateAddRemove(mesh, meshToMerge, true);
+
+    mesh.merge(meshToMerge);
+
+    this.render();
+  }
+
+  addSphere() {
+    var mesh = Primitives.createSphere(this._gl);
+    if (!this._mesh)
+      this.addMesh(mesh, false);
+    else
+      this.addMesh(mesh, true);
+  }
+
+  addCube() {
+    var mesh = Primitives.createCube(this._gl);
+    if (!this._mesh)
+      this.addMesh(mesh, false);
+    else
+      this.addMesh(mesh, true);
+  }
+
+  addCylinder() {
+    var mesh = Primitives.createCylinder(this._gl);
+    if (!this._mesh)
+      this.addMesh(mesh, false);
+    else
+      this.addMesh(mesh, true);
+  }
+
+  addTorus() {
+    var mesh = Primitives.createTorus(this._gl, this._torusLength, this._torusWidth, this._torusRadius, this._torusRadial, this._torusTubular);
+    if (!this._mesh)
+      this.addMesh(mesh, false);
+    else
+      this.addMesh(mesh, true);
+  }
+
+  addMeshPreview(primitive) {
+    if (primitive === undefined) {
+      if (this._meshPreview) {
+        this._meshPreview.release();
+        this._meshPreview = null;
+        this.render();
+      }
+      return;
     }
 
-    this.setMesh(mesh);
+    if (!this._meshPreview) {
+      this._meshPreview = new MeshStatic(this._gl);
+      this._meshPreview.setRenderData(new RenderData(this._gl, this._meshPreview));
+      this._meshPreview.initRender();
+    }
+
+    if (primitive === Enums.Mesh.SPHERE) {
+      this._meshPreview.createSphere();
+    } else if (primitive === Enums.Mesh.CUBE) {
+      this._meshPreview.createCube();
+    } else if (primitive === Enums.Mesh.CYLINDER) {
+      this._meshPreview.createCylinder();
+    } else if (primitive === Enums.Mesh.TORUS) {
+      this._meshPreview.createTorus(this._torusLength, this._torusWidth, this._torusRadius, this._torusRadial, this._torusTubular);
+    }
+    this._meshPreview.normalizeSize();
+    this._meshPreview.computeCenter();
+    this._meshPreview.updateMatrices(this._camera);
+    this.render();
   }
 
-  onLoadAlphaImage(img, name, tool) {
-    var can = document.createElement('canvas');
-    can.width = img.width;
-    can.height = img.height;
+  loadScene(fileData, fileType, autoMatrix) {
+    var opts = getOptionsURL();
+    if (autoMatrix === undefined) autoMatrix = opts.scalecenter;
 
-    var ctx = can.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    var u8rgba = ctx.getImageData(0, 0, img.width, img.height).data;
-    var u8lum = u8rgba.subarray(0, u8rgba.length / 4);
-    for (var i = 0, j = 0, n = u8lum.length; i < n; ++i, j += 4)
-      u8lum[i] = Math.round((u8rgba[j] + u8rgba[j + 1] + u8rgba[j + 2]) / 3);
+    this._stateManager.resetState();
+    this._meshes.length = 0;
+    this._selectMeshes.length = 0;
+    this._mesh = null;
 
-    name = Picking.addAlpha(u8lum, img.width, img.height, name)._name;
+    Import[Import.getFileType(fileType)](this, fileData, autoMatrix);
+    this.render();
+  }
 
-    var entry = {};
-    entry[name] = name;
-    this.getGui().addAlphaOptions(entry);
-    if (tool && tool._ctrlAlpha)
-      tool._ctrlAlpha.setValue(name);
+  loadSceneAfterMeshesLoaded(meshes, autoMatrix) {
+    if (!meshes || meshes.length === 0)
+      return;
+
+    var newMeshes = [];
+    for (var i = 0, l = meshes.length; i < l; ++i) {
+      var mesh = meshes[i];
+      if (!mesh) continue;
+      mesh.normalizeSize();
+      mesh.computeCenter();
+      newMeshes.push(mesh);
+    }
+
+    if (autoMatrix !== false) {
+      this.normalizeAndCenterMeshes(newMeshes);
+    }
+
+    this._meshes = newMeshes;
+    this._selectMeshes = newMeshes.slice(0, 1);
+    this._mesh = newMeshes[0];
+    this._gui.updateMesh();
+
+    this.render();
+  }
+
+  saveSceneAsBinary() {
+    return this._stateManager.exportSGL();
+  }
+
+  getFileType(fileName) {
+    var match = fileName.toLowerCase().match(/\.([^.]*)$/);
+    if (!match || !match[1])
+      return null;
+    return match[1];
+  }
+
+  getVertexColorSpace() {
+    return this._vertexSRGB ? 'srgb' : 'linear';
+  }
+
+  computeBoundingBox() {
+    var meshes = this._meshes;
+    var bound = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+    for (var i = 0, l = meshes.length; i < l; ++i) {
+      var bi = meshes[i].computeWorldBound();
+      if (bi[0] < bound[0]) bound[0] = bi[0];
+      if (bi[1] < bound[1]) bound[1] = bi[1];
+      if (bi[2] < bound[2]) bound[2] = bi[2];
+      if (bi[3] > bound[3]) bound[3] = bi[3];
+      if (bi[4] > bound[4]) bound[4] = bi[4];
+      if (bi[5] > bound[5]) bound[5] = bi[5];
+    }
+    return bound;
+  }
+
+  getCounterTriangles() {
+    var sumTris = 0;
+    for (var i = 0, l = this._meshes.length; i < l; ++i)
+      sumTris += this._meshes[i].getNbTriangles();
+    return sumTris;
+  }
+
+  getCounterVertices() {
+    var sumVertices = 0;
+    for (var i = 0, l = this._meshes.length; i < l; ++i)
+      sumVertices += this._meshes[i].getNbVertices();
+    return sumVertices;
+  }
+
+  isDarkenUnselected() {
+    return ShaderLib[Enums.Shader.PBR].darkenUnselected;
+  }
+
+  getScaleAndCenter() {
+    return this._autoMatrix;
+  }
+
+  setScaleAndCenter(bool) {
+    this._autoMatrix = bool;
+  }
+
+  setExportTexture(bool) {
+    RenderData.EXPORT_TEX_COORDS = bool;
+  }
+
+  createPrimitive() {
+    var mesh = this._meshPreview;
+    if (!mesh) return;
+
+    mesh.normalizeSize();
+    if (this._autoMatrix) this.normalizeAndCenterMeshes([mesh]);
+    mesh.initRender();
+    this.addMesh(mesh, false);
+
+    this._meshPreview = null;
+    this.render();
   }
 }
 
