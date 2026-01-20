@@ -24,6 +24,10 @@ var _TMP_AUTO_ROT_CENTER = vec3.create();
 var _TMP_AUTO_ROT_AXIS = vec3.create();
 var _TMP_AUTO_ROT_MAT = mat4.create();
 
+var _TMP_AUTO_ROT_CENTER = vec3.create();
+var _TMP_AUTO_ROT_AXIS = vec3.create();
+var _TMP_AUTO_ROT_MAT = mat4.create();
+
 class Scene {
 
   constructor() {
