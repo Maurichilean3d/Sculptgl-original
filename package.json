@@ -12,6 +12,7 @@
     "hammerjs": "^2.0.8",
     "http-server": "^14.1.1",
     "raw-loader": "^4.0.2",
+    "three": "^0.160.0",
     "yagui": "^2.0.2"
   },
   "devDependencies": {

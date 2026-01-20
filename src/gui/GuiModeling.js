@@ -57,7 +57,7 @@ class GuiModeling {
     this._menuSide.addButton(TR('sculptElementSelectInvert'), tool, 'invertSelection');
 
     this._menuSide.addTitle(TR('modelingToolsTitle'));
-    this._menuSide.addButton(TR('modelingExtrude'), this, 'notImplemented');
+    this._menuSide.addButton(TR('modelingExtrude'), this, 'extrudeSelection');
     this._menuSide.addButton(TR('modelingDelete'), this, 'notImplemented');
     this._menuSide.addButton(TR('modelingFill'), this, 'notImplemented');
     this._menuSide.addButton(TR('modelingBridge'), this, 'notImplemented');
@@ -69,12 +69,24 @@ class GuiModeling {
     window.alert(TR('modelingNotImplemented'));
   }
 
+  extrudeSelection() {
+    var modeling = this._main.getModelingSystem();
+    if (modeling) {
+      modeling.extrudeSelection(0.15);
+      return;
+    }
+    window.alert(TR('modelingNotImplemented'));
+  }
+
   setSelectionMode(mode) {
     var tool = this._sculptManager.getTool(Enums.Tools.ELEMENTSELECT);
     tool._selectionMode = mode;
     this._ctrlSelectVertex.setValue(mode === tool.constructor.Mode.VERTEX, true);
     this._ctrlSelectEdge.setValue(mode === tool.constructor.Mode.EDGE, true);
     this._ctrlSelectFace.setValue(mode === tool.constructor.Mode.FACE, true);
+    var modeling = this._main.getModelingSystem();
+    if (modeling)
+      modeling.setSelectionMode(mode);
   }
 
   setSelectionAction(action) {
@@ -83,14 +95,20 @@ class GuiModeling {
     this._ctrlActionReplace.setValue(action === tool.constructor.Action.REPLACE, true);
     this._ctrlActionAdd.setValue(action === tool.constructor.Action.ADD, true);
     this._ctrlActionRemove.setValue(action === tool.constructor.Action.REMOVE, true);
+    var modeling = this._main.getModelingSystem();
+    if (modeling)
+      modeling.setSelectionAction(action);
   }
 
   onToggle(value) {
     this._isEnabled = value;
     this._ctrlGui.setModelingMode(value);
+    this._main.enableModelingSystem(value);
     if (value) {
       this._sculptManager.setToolIndex(Enums.Tools.ELEMENTSELECT);
       this._main.getPicking().updateLocalAndWorldRadius2();
+      this.setSelectionMode(this._sculptManager.getTool(Enums.Tools.ELEMENTSELECT).constructor.Mode.FACE);
+      this.setSelectionAction(this._sculptManager.getTool(Enums.Tools.ELEMENTSELECT).constructor.Action.REPLACE);
       this._main.render();
     }
   }

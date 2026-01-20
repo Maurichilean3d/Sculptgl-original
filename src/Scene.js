@@ -18,6 +18,11 @@ import Rtt from 'drawables/Rtt';
 import ShaderLib from 'render/ShaderLib';
 import MeshStatic from 'mesh/meshStatic/MeshStatic';
 import WebGLCaps from 'render/WebGLCaps';
+import ModelingSystem from 'modeling/ModelingSystem';
+
+var _TMP_AUTO_ROT_CENTER = vec3.create();
+var _TMP_AUTO_ROT_AXIS = vec3.create();
+var _TMP_AUTO_ROT_MAT = mat4.create();
 
 var _TMP_AUTO_ROT_CENTER = vec3.create();
 var _TMP_AUTO_ROT_AXIS = vec3.create();
@@ -83,6 +88,8 @@ class Scene {
     this._autoRotateAxis = 1;
     this._autoRotatePivot = 0;
     this._autoRotateLastTime = null;
+
+    this._modelingSystem = null;
   }
 
   start() {
@@ -158,6 +165,17 @@ class Scene {
 
   getGui() {
     return this._gui;
+  }
+
+  getModelingSystem() {
+    return this._modelingSystem;
+  }
+
+  enableModelingSystem(enabled) {
+    if (!this._modelingSystem)
+      this._modelingSystem = new ModelingSystem(this);
+    this._modelingSystem.setEnabled(enabled);
+    if (enabled) this.render();
   }
 
   getMeshes() {
@@ -516,6 +534,8 @@ class Scene {
     this._rttMerge.onResize(newWidth, newHeight);
     this._rttOpaque.onResize(newWidth, newHeight);
     this._rttTransparent.onResize(newWidth, newHeight);
+    if (this._modelingSystem)
+      this._modelingSystem.onResize(newWidth, newHeight, this._pixelRatio);
 
     this.render();
   }
