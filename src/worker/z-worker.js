@@ -1,12 +1,12 @@
 /* jshint worker:true */
+/* jshint quotmark: false, latedef: false, strict: false */
 (function main(global) {
-  "use strict";
 
   if (global.zWorkerInitialized)
     throw new Error('z-worker.js should be run only once');
   global.zWorkerInitialized = true;
 
-  addEventListener("message", function(event) {
+  addEventListener('message', function(event) {
     var message = event.data, type = message.type, sn = message.sn;
     var handler = handlers[type];
     if (handler) {
@@ -140,8 +140,9 @@
   // "no-op" codec
   function NOOP() {}
   global.NOOP = NOOP;
-  NOOP.prototype.append = function append(bytes, onprogress) {
+  NOOP.prototype.append = function append(bytes /*, onprogress */) {
     return bytes;
   };
   NOOP.prototype.flush = function flush() {};
+  /* jshint validthis: true */
 })(this);

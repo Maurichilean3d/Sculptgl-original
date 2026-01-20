@@ -52,8 +52,8 @@ var TR = {
   sceneAddTorus: '加入圓環',
   sceneSelection: '選取項目',
   sceneMerge: '合併選取項目',
-  sceneDuplicate: '刪除選擇',
-  sceneDuplicate: null,
+  sceneDuplicate: '複製選擇',
+  sceneDelete: '刪除選擇',
 
   // mesh
   meshTitle: '網面',
