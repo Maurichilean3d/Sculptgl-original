@@ -33,8 +33,8 @@
  * and contributors of zlib.
  */
 
+/* jshint quotmark: false, eqeqeq: false, boss: true, evil: false, strict: false, -W014: false, -W116: false */
 (function(global) {
-  "use strict";
 
   // Global
 
@@ -1341,10 +1341,11 @@
 
         // We check for insufficient lookahead only every 8th comparison;
         // the 256th check will be made at strstart+258.
-        do {
-        } while (window[++scan] == window[++match] && window[++scan] == window[++match] && window[++scan] == window[++match]
+        /* jshint ignore:start */
+        do {} while (window[++scan] == window[++match] && window[++scan] == window[++match] && window[++scan] == window[++match]
             && window[++scan] == window[++match] && window[++scan] == window[++match] && window[++scan] == window[++match]
             && window[++scan] == window[++match] && window[++scan] == window[++match] && scan < strend);
+        /* jshint ignore:end */
 
         len = MAX_MATCH - (strend - scan);
         scan = strend - MAX_MATCH;
@@ -2057,4 +2058,5 @@
   // 'zip' may not be defined in z-worker and some tests
   var env = global.zip || global;
   env.Deflater = env._jzlib_Deflater = Deflater;
+  /* jshint validthis: true */
 })(this);

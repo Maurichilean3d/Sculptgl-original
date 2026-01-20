@@ -705,7 +705,6 @@ class Gizmo {
 
   _updateScaleEdit() {
     var main = this._main;
-    var mesh = main.getMesh();
 
     var origin = this._editLineOrigin;
     var dir = this._editLineDirection;

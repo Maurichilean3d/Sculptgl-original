@@ -440,15 +440,17 @@ Picking.INIT_ALPHAS_PATHS = ['square.jpg', 'skin.jpg'];
 var readAlphas = function () {
   // check nodejs
   if (!window.module || !window.module.exports) return;
+  /* jshint evil: true */
   var fs = eval('require')('fs');
   var path = eval('require')('path');
+  /* jshint evil: false */
 
   var directoryPath = path.join(window.__filename, '../resources/alpha');
   fs.readdir(directoryPath, function (err, files) {
     if (err) return;
     for (var i = 0; i < files.length; ++i) {
       var fname = files[i];
-      if (fname == 'square.jpg' || fname == 'skin.jpg') continue;
+      if (fname === 'square.jpg' || fname === 'skin.jpg') continue;
       Picking.INIT_ALPHAS_NAMES.push(fname);
       Picking.INIT_ALPHAS_PATHS.push(fname);
     }

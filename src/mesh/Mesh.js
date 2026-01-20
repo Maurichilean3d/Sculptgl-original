@@ -1189,8 +1189,14 @@ class Mesh {
     var fAr = this.getFaces();
     var len = fAr.length;
 
-    if (len != uvfArOrig.length) return;
+    if (len !== uvfArOrig.length) return;
     var nbUV = uvAr.length / 2;
+
+    var nbVertices = this.getNbVertices();
+    var i = 0;
+    var j = 0;
+    var iv = 0;
+    var tag = 0;
 
     // fix integrity (bug with sgl export??)
     for (i = 0; i < len; ++i) {
@@ -1198,12 +1204,6 @@ class Mesh {
         uvfArOrig[i] = fAr[i];
       }
     }
-
-    var nbVertices = this.getNbVertices();
-    var i = 0;
-    var j = 0;
-    var iv = 0;
-    var tag = 0;
 
     // detect duplicates vertices because of tex coords
     var tagV = new Int32Array(nbVertices);
