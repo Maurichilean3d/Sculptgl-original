@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang='en'>
 
 <head>
@@ -19,9 +19,10 @@
   window.sketchfabOAuth2Config = {
     hostname: 'sketchfab.com',
     client_id: 'OWoAmrd1QCS9wB54Ly17rMl2i5AHGvDNfmN4pEUH',
-    redirect_uri: 'https://stephaneginier.com/sculptgl/authSuccess.html'
+    // doesn't work in localhost? (https?)
+    redirect_uri: window.location.href + 'authSuccess.html'
   };
-  
+
   window.addEventListener('load', function () {
     var app = new window.SculptGL();
     app.start();
@@ -41,7 +42,6 @@
   </div>
 
   <script src='sculptgl.js'></script>
-  <!-- <script src='//cdn.webglstats.com/stat.js' defer='defer' async='async'></script> -->
 </body>
 
 </html>

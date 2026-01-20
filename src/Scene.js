@@ -18,6 +18,11 @@ import Rtt from 'drawables/Rtt';
 import ShaderLib from 'render/ShaderLib';
 import MeshStatic from 'mesh/meshStatic/MeshStatic';
 import WebGLCaps from 'render/WebGLCaps';
+import ModelingSystem from 'modeling/ModelingSystem';
+
+var _TMP_AUTO_ROT_CENTER = vec3.create();
+var _TMP_AUTO_ROT_AXIS = vec3.create();
+var _TMP_AUTO_ROT_MAT = mat4.create();
 
 class Scene {
 
@@ -73,6 +78,14 @@ class Scene {
     this._drawFullScene = false; // render everything on the rtt
     this._autoMatrix = opts.scalecenter; // scale and center the imported meshes
     this._vertexSRGB = true; // srgb vs linear colorspace for vertex color
+
+    this._autoRotateEnabled = false;
+    this._autoRotateSpeed = Math.PI / 6.0;
+    this._autoRotateAxis = 1;
+    this._autoRotatePivot = 0;
+    this._autoRotateLastTime = null;
+
+    this._modelingSystem = null;
   }
 
   start() {
@@ -150,6 +163,17 @@ class Scene {
     return this._gui;
   }
 
+  getModelingSystem() {
+    return this._modelingSystem;
+  }
+
+  enableModelingSystem(enabled) {
+    if (!this._modelingSystem)
+      this._modelingSystem = new ModelingSystem(this);
+    this._modelingSystem.setEnabled(enabled);
+    if (enabled) this.render();
+  }
+
   getMeshes() {
     return this._meshes;
   }
@@ -184,6 +208,59 @@ class Scene {
 
   setCanvasCursor(style) {
     this._canvas.style.cursor = style;
+  }
+
+  setAutoRotateEnabled(enabled) {
+    this._autoRotateEnabled = enabled;
+    this._autoRotateLastTime = null;
+    if (enabled) this.render();
+  }
+
+  setAutoRotateSpeed(speed) {
+    this._autoRotateSpeed = speed;
+  }
+
+  setAutoRotateAxis(axis) {
+    this._autoRotateAxis = axis;
+  }
+
+  setAutoRotatePivot(pivot) {
+    this._autoRotatePivot = pivot;
+  }
+
+  _updateAutoRotate() {
+    if (!this._autoRotateEnabled || !this._mesh)
+      return;
+
+    var now = performance.now();
+    if (this._autoRotateLastTime === null) {
+      this._autoRotateLastTime = now;
+      return;
+    }
+
+    var deltaSeconds = (now - this._autoRotateLastTime) / 1000.0;
+    this._autoRotateLastTime = now;
+
+    var speed = this._autoRotateSpeed;
+    if (!speed)
+      return;
+
+    var rot = speed * deltaSeconds;
+    var mesh = this._mesh;
+    var mat = mesh.getMatrix();
+    vec3.set(_TMP_AUTO_ROT_AXIS, 0.0, 0.0, 0.0);
+    _TMP_AUTO_ROT_AXIS[this._autoRotateAxis] = 1.0;
+    mat4.identity(_TMP_AUTO_ROT_MAT);
+    if (this._autoRotatePivot === 0) {
+      vec3.transformMat4(_TMP_AUTO_ROT_CENTER, mesh.getCenter(), mat);
+      mat4.translate(_TMP_AUTO_ROT_MAT, _TMP_AUTO_ROT_MAT, _TMP_AUTO_ROT_CENTER);
+      mat4.rotate(_TMP_AUTO_ROT_MAT, _TMP_AUTO_ROT_MAT, rot, _TMP_AUTO_ROT_AXIS);
+      mat4.translate(_TMP_AUTO_ROT_MAT, _TMP_AUTO_ROT_MAT, [-_TMP_AUTO_ROT_CENTER[0], -_TMP_AUTO_ROT_CENTER[1], -_TMP_AUTO_ROT_CENTER[2]]);
+    } else {
+      mat4.rotate(_TMP_AUTO_ROT_MAT, _TMP_AUTO_ROT_MAT, rot, _TMP_AUTO_ROT_AXIS);
+    }
+    mat4.mul(mat, _TMP_AUTO_ROT_MAT, mat);
+    mesh.updateYawPitchRollFromMatrix();
   }
 
   initGrid() {
@@ -242,6 +319,7 @@ class Scene {
 
   applyRender() {
     this._preventRender = false;
+    this._updateAutoRotate();
     this.updateMatricesAndSort();
 
     var gl = this._gl;
@@ -262,6 +340,8 @@ class Scene {
     gl.enable(gl.DEPTH_TEST);
 
     this._sculptManager.postRender(); // draw sculpting gizmo stuffs
+
+    if (this._autoRotateEnabled && this._mesh) this.render();
   }
 
   _drawScene() {
@@ -450,6 +530,8 @@ class Scene {
     this._rttMerge.onResize(newWidth, newHeight);
     this._rttOpaque.onResize(newWidth, newHeight);
     this._rttTransparent.onResize(newWidth, newHeight);
+    if (this._modelingSystem)
+      this._modelingSystem.onResize(newWidth, newHeight, this._pixelRatio);
 
     this.render();
   }
